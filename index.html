@@ -1,0 +1,1232 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Carpeta de michis</title>
+<meta name="description" content="La carpeta médica de nuestros gatitos: vacunas, visitas al vete, medicaciones, cirugías y estudios, todo en un solo lugar.">
+
+<!-- Open Graph: esto controla la imagen y texto que aparece al compartir el link -->
+<meta property="og:title" content="Carpeta de michis 🐾">
+<meta property="og:description" content="La carpeta médica de nuestros gatitos, todo organizado en un solo lugar.">
+<meta property="og:url" content="https://giulianaluzigestion-debug.github.io/carpeta-michis-/">
+<meta property="og:image" content="https://giulianaluzigestion-debug.github.io/carpeta-michis-/portada-michis.png">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Carpeta de michis 🐾">
+<meta name="twitter:description" content="La carpeta médica de nuestros gatitos, todo organizado en un solo lugar.">
+<meta name="twitter:image" content="https://giulianaluzigestion-debug.github.io/carpeta-michis-/portada-michis.png">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐾</text></svg>">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body style="margin:0; background:#FFF0F5;">
+<div id="app-root"></div>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Quicksand:wght@500;600;700&display=swap');
+
+#app-root, #app-root * {
+  box-sizing: border-box;
+  font-family: 'Quicksand', var(--font-sans);
+}
+#app-root {
+  --pink-bg: #FFF0F5;
+  --pink-card: #FFFFFF;
+  --pink-soft: #FFD9E8;
+  --pink-mid: #FFADC9;
+  --pink-deep: #F0699A;
+  --pink-darkest: #B23467;
+  --lilac: #E3D5F8;
+  --lilac-deep: #9B7BC9;
+  --ink: #5C4357;
+  --ink-soft: #A589A0;
+  --mint: #C9F2DD;
+  --mint-deep: #4FA87E;
+  --butter: #FFEFB8;
+  --butter-deep: #C99A2E;
+  color: var(--ink);
+  max-width: 760px;
+  margin: 0 auto;
+}
+.pixel-font { font-family: 'Press Start 2P', monospace; }
+#app-root button { font-family: 'Quicksand', var(--font-sans); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+#app-root input, #app-root select, #app-root textarea { font-family: 'Quicksand', var(--font-sans); }
+
+/* pixel grid texture, applied to full-screen backgrounds */
+.pixel-bg {
+  background-color: var(--pink-bg);
+  background-image:
+    radial-gradient(circle at 2px 2px, rgba(240,105,154,0.10) 1.5px, transparent 1.5px),
+    repeating-linear-gradient(0deg, rgba(178,52,103,0.05) 0, rgba(178,52,103,0.05) 1px, transparent 1px, transparent 16px),
+    repeating-linear-gradient(90deg, rgba(178,52,103,0.05) 0, rgba(178,52,103,0.05) 1px, transparent 1px, transparent 16px);
+  background-size: 16px 16px, 16px 16px, 16px 16px;
+  position: relative;
+  overflow: hidden;
+}
+.pixel-decor {
+  position: absolute;
+  opacity: 0.85;
+  pointer-events: none;
+}
+.pixel-decor svg { display: block; image-rendering: pixelated; }
+.pixel-card {
+  background: var(--pink-card);
+  border: 3px solid var(--ink);
+  border-radius: 0;
+  position: relative;
+  box-shadow: 4px 4px 0 0 var(--pink-mid), 6px 6px 0 0 rgba(178,52,103,0.18);
+}
+.pixel-tab {
+  position: absolute;
+  top: -14px;
+  left: 16px;
+  background: var(--lilac-deep);
+  color: white;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  padding: 4px 10px;
+  border: 2px solid var(--ink);
+  border-radius: 0;
+  box-shadow: 2px 2px 0 0 var(--ink);
+}
+.btn-pixel {
+  background: var(--pink-deep);
+  color: white;
+  border: 3px solid var(--ink);
+  border-radius: 0;
+  padding: 12px 18px;
+  font-size: 14px;
+  font-weight: 700;
+  box-shadow: 3px 3px 0 0 var(--ink);
+  transition: transform 0.08s, box-shadow 0.08s;
+  min-height: 46px;
+}
+.btn-pixel:hover { transform: translate(1px, 1px); box-shadow: 2px 2px 0 0 var(--ink); }
+.btn-pixel:active { transform: translate(3px, 3px); box-shadow: 0 0 0 0 var(--ink); }
+.btn-pixel-ghost {
+  background: var(--pink-card);
+  color: var(--ink);
+  border: 3px solid var(--ink);
+  border-radius: 0;
+  padding: 11px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 3px 3px 0 0 var(--pink-soft);
+  transition: transform 0.08s, box-shadow 0.08s;
+  min-height: 44px;
+}
+.btn-pixel-ghost:hover { transform: translate(1px, 1px); box-shadow: 2px 2px 0 0 var(--pink-soft); }
+.btn-pixel-ghost:active { transform: translate(3px, 3px); box-shadow: 0 0 0 0 var(--pink-soft); }
+.btn-icon-square {
+  min-width: 42px;
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 !important;
+}
+
+.field-input {
+  width: 100%;
+  border: 2.5px solid var(--ink);
+  background: #FFFBFD;
+  border-radius: 0;
+  padding: 11px 12px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+  min-height: 46px;
+}
+textarea.field-input { min-height: 72px; }
+.field-input:focus {
+  outline: none;
+  border-color: var(--pink-deep);
+  box-shadow: 2px 2px 0 0 var(--pink-soft);
+}
+.field-label {
+  font-size: 11px;
+  color: var(--ink-soft);
+  margin-bottom: 4px;
+  display: block;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.section-menu-card {
+  transition: transform 0.08s;
+}
+.section-menu-card:active { transform: translate(2px, 2px); }
+.avatar-frame {
+  border: 3px solid var(--ink);
+  border-radius: 0;
+  overflow: hidden;
+  background: var(--pink-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 3px 3px 0 0 var(--pink-mid);
+}
+.avatar-frame img { width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; }
+.sparkle-divider {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--pink-mid);
+  font-size: 10px;
+  margin: 4px 0;
+}
+.sparkle-divider::before, .sparkle-divider::after {
+  content: '';
+  flex: 1;
+  height: 2px;
+  background: repeating-linear-gradient(to right, var(--pink-mid) 0, var(--pink-mid) 4px, transparent 4px, transparent 8px);
+}
+.truncate-1 {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+@media (max-width: 600px) {
+  .hide-mobile { display: none; }
+  .pixel-font { font-size: 13px !important; }
+}
+</style>
+
+<script>
+  const SUPABASE_URL = 'https://nmkevimweutvjescxase.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable__gs5IK3-YuFZ0WHSXO75Ag_x0V1lyd-';
+  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+</script>
+
+<script>
+(function() {
+  const root = document.getElementById('app-root');
+
+  const SECTIONS = [
+    { id: 'vacuna', label: 'Vacunas', icon: 'syringe', color: 'mint' },
+    { id: 'visita', label: 'Visitas al vete', icon: 'stethoscope', color: 'lilac' },
+    { id: 'medicacion', label: 'Medicaciones', icon: 'pillIcon', color: 'butter' },
+    { id: 'cirugia', label: 'Cirugías', icon: 'scissors', color: 'pink' },
+    { id: 'estudio', label: 'Estudios', icon: 'microscopeIcon', color: 'lilac', hasFile: true }
+  ];
+
+  const SECTION_FIELDS = {
+    vacuna: [
+      { id: 'name', label: 'Vacuna *', type: 'text', placeholder: 'Triple felina, antirrábica…', required: true },
+      { id: 'date', label: 'Fecha *', type: 'date', required: true },
+      { id: 'vet', label: 'Veterinario / clínica', type: 'text', placeholder: 'Dr. García, Clínica San Roque…' },
+      { id: 'nextDose', label: 'Próxima dosis', type: 'date' },
+      { id: 'notes', label: 'Notas', type: 'textarea', placeholder: 'Reacciones, lote, etc.' }
+    ],
+    visita: [
+      { id: 'date', label: 'Fecha *', type: 'date', required: true },
+      { id: 'vet', label: 'Veterinario / clínica', type: 'text', placeholder: 'Dr. García, Clínica San Roque…' },
+      { id: 'reason', label: 'Motivo *', type: 'text', required: true, placeholder: 'Control anual, vómitos…' },
+      { id: 'diagnosis', label: 'Diagnóstico', type: 'textarea', placeholder: 'Qué encontró el vete' },
+      { id: 'weight', label: 'Peso (kg)', type: 'text', placeholder: 'ej: 4.2' },
+      { id: 'notes', label: 'Notas', type: 'textarea' }
+    ],
+    medicacion: [
+      { id: 'name', label: 'Medicación *', type: 'text', required: true, placeholder: 'Nombre del medicamento' },
+      { id: 'startDate', label: 'Fecha de inicio *', type: 'date', required: true },
+      { id: 'dosage', label: 'Dosis', type: 'text', placeholder: 'ej: 1/2 comprimido cada 12h' },
+      { id: 'duration', label: 'Duración', type: 'text', placeholder: 'ej: 7 días' },
+      { id: 'reason', label: 'Motivo', type: 'text', placeholder: 'Por qué se la indicaron' },
+      { id: 'notes', label: 'Notas', type: 'textarea' }
+    ],
+    cirugia: [
+      { id: 'name', label: 'Intervención *', type: 'text', required: true, placeholder: 'Castración, extracción dental…' },
+      { id: 'date', label: 'Fecha *', type: 'date', required: true },
+      { id: 'vet', label: 'Veterinario / clínica', type: 'text', placeholder: 'Dr. García, Clínica San Roque…' },
+      { id: 'notes', label: 'Notas', type: 'textarea', placeholder: 'Cuidados post-operatorios, evolución…' }
+    ],
+    estudio: [
+      { id: 'name', label: 'Estudio *', type: 'text', required: true, placeholder: 'Análisis de sangre, radiografía, eco…' },
+      { id: 'date', label: 'Fecha *', type: 'date', required: true },
+      { id: 'vet', label: 'Veterinario / laboratorio', type: 'text', placeholder: 'Dr. García, Lab Vetlab…' },
+      { id: 'notes', label: 'Notas', type: 'textarea', placeholder: 'Resultados, observaciones…' }
+    ]
+  };
+
+  let state = {
+    screen: 'login',
+    currentUser: null,
+    cats: [],
+    activeCatId: null,
+    activeSection: null,
+    knownUsers: [],
+    loading: true,
+    pendingPhoto: null,
+    pendingFile: null
+  };
+
+  function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  // Pixel art decorative stickers, drawn as small grids of <rect> blocks.
+  // Each matrix row is a string; '.' = empty, other chars map to colors.
+  const STICKER_DEFS = {
+    star: {
+      colors: { Y: '#FFEFB8', O: '#C99A2E' },
+      rows: [
+        '..Y..',
+        '..Y..',
+        'YYYYY',
+        '.YYY.',
+        'Y.Y.Y'
+      ]
+    },
+    heart: {
+      colors: { P: '#FFADC9', D: '#F0699A' },
+      rows: [
+        '.PP.PP.',
+        'PPPPPPP',
+        'PPPPPPP',
+        '.PPPPP.',
+        '..PPP..',
+        '...P...'
+      ]
+    },
+    yarn: {
+      colors: { L: '#E3D5F8', D: '#9B7BC9' },
+      rows: [
+        '.LLLL.',
+        'LLDLLL',
+        'LDLLDL',
+        'LLLDLL',
+        '.LLLL.'
+      ]
+    },
+    fish: {
+      colors: { M: '#C9F2DD', D: '#4FA87E', E: '#5C4357' },
+      rows: [
+        '..MMMM...',
+        '.MMMMMMD.',
+        'MMEMMMMDD',
+        '.MMMMMMD.',
+        '..MMMM...'
+      ]
+    },
+    plant: {
+      colors: { G: '#C9F2DD', D: '#4FA87E', B: '#C99A2E' },
+      rows: [
+        '.G.G.G.',
+        'GGGGGGG',
+        '.GDGDG.',
+        '..GDG..',
+        '..BBB..',
+        '.BBBBB.'
+      ]
+    },
+    paw: {
+      colors: { L: '#FFADC9', D: '#B23467' },
+      rows: [
+        'L...L',
+        '.LLL.',
+        'LLLLL',
+        '.LLL.'
+      ]
+    },
+    bow: {
+      colors: { L: '#E3D5F8', D: '#9B7BC9' },
+      rows: [
+        'LL.DD.LL',
+        '.LDDDDL.',
+        '..DDDD..',
+        '.LDDDDL.',
+        'LL.DD.LL'
+      ]
+    },
+    sparkle: {
+      colors: { Y: '#FFEFB8' },
+      rows: [
+        '.Y.',
+        'YYY',
+        '.Y.'
+      ]
+    },
+    catMascot: {
+      colors: { P: '#FFC2DC', D: '#F0699A', K: '#5C4357', W: '#FFFFFF', B: '#FFADC9' },
+      rows: [
+        '.P....P.',
+        '.PP..PP.',
+        '.PPPPPP.',
+        'PPPPPPPP',
+        'PKPPPPKP',
+        'PPBPPBPP',
+        'PPPDDPPP',
+        '.PPPPPP.',
+        '.WP..PW.',
+        '.WW..WW.'
+      ]
+    },
+    syringe: {
+      colors: { M: '#C9F2DD', D: '#4FA87E', K: '#5C4357' },
+      rows: [
+        '....KK..',
+        '...K..K.',
+        '..MMMM..',
+        '.MMMMK..',
+        'MMMMK...',
+        'MK..K...',
+        'K..K....',
+        '.K......'
+      ]
+    },
+    stethoscope: {
+      colors: { L: '#E3D5F8', D: '#9B7BC9', K: '#5C4357' },
+      rows: [
+        'L.....L.',
+        'L.....L.',
+        'L.....L.',
+        'LL...LL.',
+        '.L...L..',
+        '.LLLLL..',
+        '....L...',
+        '...DD...'
+      ]
+    },
+    pillIcon: {
+      colors: { Y: '#FFEFB8', O: '#C99A2E', W: '#FFFFFF' },
+      rows: [
+        '..YYWW..',
+        '.YYYYWW.',
+        'YYYYYWWW',
+        '.YYYYWW.',
+        '..YYWW..'
+      ]
+    },
+    scissors: {
+      colors: { P: '#FFADC9', D: '#B23467', K: '#5C4357' },
+      rows: [
+        'D...D..',
+        '.D.D...',
+        '..K....',
+        '.D.D...',
+        'D...D..',
+        '....DDD'
+      ]
+    },
+    microscopeIcon: {
+      colors: { L: '#E3D5F8', D: '#9B7BC9', K: '#5C4357' },
+      rows: [
+        '..KK....',
+        '..LL....',
+        '.LLLK...',
+        '..LL....',
+        '..LLL...',
+        '.LLLLL..',
+        'LLLLLLL.'
+      ]
+    },
+    folderIcon: {
+      colors: { Y: '#FFEFB8', O: '#C99A2E' },
+      rows: [
+        'YY......',
+        'YYYYYYYY',
+        'OOOOOOOO',
+        'OOOOOOOO',
+        'OOOOOOOO'
+      ]
+    },
+    pencilIcon: {
+      colors: { Y: '#FFEFB8', K: '#5C4357', P: '#FFADC9' },
+      rows: [
+        '.....KK',
+        '....KYK',
+        '...KYK.',
+        '..KYK..',
+        '.KYK...',
+        'PYK....',
+        'PP.....'
+      ]
+    },
+    trashIcon: {
+      colors: { L: '#FFADC9', D: '#B23467' },
+      rows: [
+        '.DDDDD.',
+        'DLLLLLD',
+        '.LLLLL.',
+        '.L.L.L.',
+        '.L.L.L.',
+        '.LLLLL.'
+      ]
+    },
+    plusIcon: {
+      colors: { W: '#FFFFFF' },
+      rows: [
+        '.W.',
+        'WWW',
+        '.W.'
+      ]
+    },
+    arrowLeft: {
+      colors: { K: '#5C4357' },
+      rows: [
+        '..K.',
+        '.K..',
+        'KKKK',
+        '.K..',
+        '..K.'
+      ]
+    },
+    chevronRight: {
+      colors: { L: '#FFADC9' },
+      rows: [
+        'L..',
+        '.L.',
+        '..L',
+        '.L.',
+        'L..'
+      ]
+    },
+    clipIcon: {
+      colors: { D: '#9B7BC9' },
+      rows: [
+        '.DD',
+        'D.D',
+        'D.D',
+        'D.D',
+        '.DD'
+      ]
+    },
+    cameraIcon: {
+      colors: { P: '#FFADC9', K: '#5C4357', W: '#FFFFFF' },
+      rows: [
+        '.KKKK..',
+        'KWWWWK.',
+        'KWPPWK.',
+        'KWPPWK.',
+        'KWWWWK.',
+        '.KKKK..'
+      ]
+    },
+    uploadIcon: {
+      colors: { D: '#9B7BC9' },
+      rows: [
+        '.D.',
+        'DDD',
+        '.D.',
+        '.D.',
+        'DDD'
+      ]
+    },
+    fileIcon: {
+      colors: { L: '#E3D5F8', D: '#9B7BC9' },
+      rows: [
+        'LLLD',
+        'LLLL',
+        'LLLL',
+        'LLLL'
+      ]
+    },
+    logoutIcon: {
+      colors: { K: '#5C4357' },
+      rows: [
+        'K.K.',
+        'K.KK',
+        'K.K.',
+        'K.KK'
+      ]
+    }
+  };
+
+  function pixelSticker(type, size) {
+    const def = STICKER_DEFS[type];
+    if (!def) return '';
+    const s = size || 6;
+    const rows = def.rows;
+    const w = rows[0].length;
+    const h = rows.length;
+    let rects = '';
+    rows.forEach((row, y) => {
+      for (let x = 0; x < row.length; x++) {
+        const ch = row[x];
+        if (ch === '.' || !def.colors[ch]) continue;
+        rects += `<rect x="${x * s}" y="${y * s}" width="${s}" height="${s}" fill="${def.colors[ch]}"/>`;
+      }
+    });
+    return `<svg viewBox="0 0 ${w * s} ${h * s}" width="${w * s}" height="${h * s}" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">${rects}</svg>`;
+  }
+
+  function formatDate(iso) {
+    if (!iso) return '';
+    const [y, m, d] = iso.split('-');
+    const months = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+    return `${parseInt(d)} ${months[parseInt(m)-1]} ${y}`;
+  }
+
+  function ageFromBirthdate(iso) {
+    if (!iso) return '';
+    const birth = new Date(iso);
+    const now = new Date();
+    let months = (now.getFullYear() - birth.getFullYear()) * 12 + (now.getMonth() - birth.getMonth());
+    if (now.getDate() < birth.getDate()) months--;
+    if (months < 0) return '';
+    if (months < 1) return 'recién nacido';
+    if (months < 12) return months + (months === 1 ? ' mes' : ' meses');
+    const years = Math.floor(months / 12);
+    const remMonths = months % 12;
+    return years + (years === 1 ? ' año' : ' años') + (remMonths ? ' y ' + remMonths + (remMonths === 1 ? ' mes' : ' meses') : '');
+  }
+
+  function uid() {
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  }
+
+  function userKey(name) {
+    return 'user:' + name.trim().toLowerCase();
+  }
+
+  async function loadUserCats(username) {
+    try {
+      const { data, error } = await supabaseClient
+        .from('cats_data')
+        .select('data')
+        .eq('username', userKey(username))
+        .maybeSingle();
+      if (error) throw error;
+      return (data && data.data) ? data.data : [];
+    } catch (e) {
+      console.error('Error cargando', e);
+      return [];
+    }
+  }
+
+  async function saveUserCats() {
+    try {
+      const { error } = await supabaseClient
+        .from('cats_data')
+        .upsert({ username: userKey(state.currentUser), data: state.cats, updated_at: new Date().toISOString() }, { onConflict: 'username' });
+      if (error) throw error;
+    } catch (e) {
+      console.error('Error guardando', e);
+      alert('No se pudo guardar. Revisá tu conexión a internet, o si subiste una foto muy pesada probá con una más liviana.');
+    }
+  }
+
+  async function loadKnownUsers() {
+    try {
+      const { data, error } = await supabaseClient
+        .from('cats_data')
+        .select('data')
+        .eq('username', '__known_users__')
+        .maybeSingle();
+      if (error) throw error;
+      return (data && data.data) ? data.data : [];
+    } catch (e) {
+      console.error('Error cargando usuarias', e);
+      return [];
+    }
+  }
+
+  async function addKnownUser(name) {
+    const list = await loadKnownUsers();
+    const lower = name.trim().toLowerCase();
+    if (!list.some(u => u.toLowerCase() === lower)) {
+      list.push(name.trim());
+      try {
+        await supabaseClient
+          .from('cats_data')
+          .upsert({ username: '__known_users__', data: list, updated_at: new Date().toISOString() }, { onConflict: 'username' });
+      } catch (e) {
+        console.error('Error guardando usuaria', e);
+      }
+    }
+  }
+
+  async function handleLogin(name) {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    state.currentUser = trimmed;
+    state.loading = true;
+    render();
+    await addKnownUser(trimmed);
+    state.cats = await loadUserCats(trimmed);
+    state.loading = false;
+    state.screen = 'list';
+    render();
+  }
+
+  function handleLogout() {
+    state = { screen: 'login', currentUser: null, cats: [], activeCatId: null, activeSection: null, knownUsers: [], loading: true, pendingPhoto: null };
+    initLogin();
+  }
+
+  async function initLogin() {
+    const known = await loadKnownUsers();
+    state.knownUsers = known;
+    state.loading = false;
+    render();
+  }
+
+  // resize + compress image to keep storage small
+  function processImageFile(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = e => {
+        const img = new Image();
+        img.onload = () => {
+          const size = 240;
+          const canvas = document.createElement('canvas');
+          canvas.width = size;
+          canvas.height = size;
+          const ctx = canvas.getContext('2d');
+          const scale = Math.max(size / img.width, size / img.height);
+          const w = img.width * scale;
+          const h = img.height * scale;
+          ctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h);
+          resolve(canvas.toDataURL('image/jpeg', 0.8));
+        };
+        img.onerror = reject;
+        img.src = e.target.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // ---------- Render router ----------
+
+  function render() {
+    if (state.screen === 'login') return renderLogin();
+    if (state.screen === 'list') return renderCatList();
+    if (state.screen === 'cat') return renderCatDetail();
+  }
+
+  function renderLogin() {
+    const known = state.knownUsers || [];
+    root.innerHTML = `
+      <div class="pixel-bg" style="min-height:380px; display:flex; flex-direction:column; align-items:center; justify-content:center; padding: 2.5rem 1rem; border-radius:0;">
+        <span class="pixel-decor" style="top:14px; left:7%;">${pixelSticker('paw', 4)}</span>
+        <span class="pixel-decor" style="top:16%; right:9%;">${pixelSticker('sparkle', 6)}</span>
+        <span class="pixel-decor" style="bottom:18%; left:10%;">${pixelSticker('bow', 5)}</span>
+        <span class="pixel-decor" style="bottom:9%; right:7%;">${pixelSticker('paw', 4)}</span>
+        <span class="pixel-decor" style="top:38%; right:16%;">${pixelSticker('star', 4)}</span>
+        <span class="pixel-decor" style="top:60%; left:5%;">${pixelSticker('yarn', 4)}</span>
+        <div class="avatar-frame" style="width:72px; height:72px; border-radius:50%; margin-bottom:18px; position:relative; z-index:1; padding:8px;">
+          ${pixelSticker('catMascot', 7)}
+        </div>
+        <h1 class="pixel-font" style="font-size:16px; margin:0 0 10px; text-align:center; color:var(--pink-darkest); line-height:1.6; position:relative; z-index:1;">carpeta de michis</h1>
+        <p style="color:var(--ink-soft); font-size:14px; font-weight:600; margin:0 0 28px; text-align:center; position:relative; z-index:1;">Entrá con tu nombre para ver tus gatitos</p>
+        <form id="login-form" style="width:100%; max-width:300px; display:flex; flex-direction:column; gap:10px; position:relative; z-index:1;">
+          <input id="login-input" class="field-input" type="text" placeholder="Tu nombre" autocomplete="off" style="text-align:center; font-size:16px;" />
+          <button type="submit" class="btn-pixel" style="width:100%;">entrar ✿</button>
+        </form>
+        ${known.length ? `
+          <div style="margin-top:26px; width:100%; max-width:320px; position:relative; z-index:1;">
+            <p style="font-size:11px; color:var(--ink-soft); text-align:center; margin:0 0 10px; font-weight:700;">o elegí tu nombre</p>
+            <div style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center;">
+              ${known.map(u => `<button class="btn-pixel-ghost known-user-btn" data-name="${escapeHtml(u)}" style="font-size:13px; padding:9px 14px;">${escapeHtml(u)}</button>`).join('')}
+            </div>
+          </div>
+        ` : ''}
+      </div>
+    `;
+    document.getElementById('login-form').addEventListener('submit', e => {
+      e.preventDefault();
+      handleLogin(document.getElementById('login-input').value);
+    });
+    root.querySelectorAll('.known-user-btn').forEach(btn => {
+      btn.addEventListener('click', () => handleLogin(btn.dataset.name));
+    });
+  }
+
+  function renderCatList() {
+    if (state.loading) {
+      root.innerHTML = `<div style="padding:4rem 1rem; text-align:center; color:var(--ink-soft); font-weight:600;">cargando tu carpeta… ✿</div>`;
+      return;
+    }
+    const cats = state.cats;
+    root.innerHTML = `
+      <div class="pixel-bg" style="padding:1.5rem 1rem 3rem; min-height:480px;">
+        <span class="pixel-decor" style="top:4px; right:5%;">${pixelSticker('sparkle', 6)}</span>
+        <span class="pixel-decor" style="bottom:12%; left:3%;">${pixelSticker('paw', 4)}</span>
+        <span class="pixel-decor" style="top:30%; left:2%;">${pixelSticker('fish', 4)}</span>
+        <span class="pixel-decor" style="bottom:30%; right:3%;">${pixelSticker('yarn', 4)}</span>
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px; position:relative; z-index:1;">
+          <div class="truncate-1">
+            <p style="font-size:11px; color:var(--ink-soft); margin:0 0 2px; font-weight:700; letter-spacing:0.02em;">carpeta de</p>
+            <h1 class="pixel-font truncate-1" style="font-size:15px; margin:0; color:var(--pink-darkest);">${escapeHtml(state.currentUser)}</h1>
+          </div>
+          <button id="logout-btn" class="btn-pixel-ghost" style="font-size:13px; padding:10px 12px; display:flex; align-items:center; gap:6px; flex-shrink:0;">
+            ${pixelSticker('logoutIcon', 3)}<span class="hide-mobile">salir</span>
+          </button>
+        </div>
+
+        <div style="margin-top: 1.75rem; position:relative; z-index:1;">
+          ${cats.length === 0 ? `
+            <div class="pixel-card" style="text-align:center; padding:2.5rem 1rem;">
+              <div style="display:flex; justify-content:center; margin-bottom:6px;">${pixelSticker('catMascot', 6)}</div>
+              <p style="color:var(--ink-soft); font-size:14px; font-weight:600; margin:14px 0 0;">Todavía no agregaste ningún michi.<br>Creá su primera ficha ✿</p>
+            </div>
+          ` : `
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap:14px;">
+              ${cats.map(cat => renderCatCard(cat)).join('')}
+            </div>
+          `}
+        </div>
+
+        <button id="add-cat-btn" class="btn-pixel" style="margin-top:1.75rem; width:100%; display:flex; align-items:center; justify-content:center; gap:8px; position:relative; z-index:1;">
+          ${pixelSticker('plusIcon', 3)} agregar un michi
+        </button>
+      </div>
+
+      <div id="modal-zone"></div>
+    `;
+    document.getElementById('logout-btn').addEventListener('click', handleLogout);
+    document.getElementById('add-cat-btn').addEventListener('click', () => openAddCatModal());
+    cats.forEach(cat => {
+      const el = document.getElementById('cat-card-' + cat.id);
+      if (el) el.addEventListener('click', () => openCat(cat.id));
+    });
+  }
+
+  function renderCatCard(cat) {
+    const totalEvents = SECTIONS.reduce((sum, s) => sum + ((cat.records && cat.records[s.id]) || []).length, 0);
+    return `
+      <div id="cat-card-${cat.id}" class="pixel-card" style="padding:1.1rem; cursor:pointer; min-height:48px;">
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+          <div class="avatar-frame" style="width:46px; height:46px; border-radius:50%; flex-shrink:0;">
+            ${cat.photo ? `<img src="${cat.photo}" alt="${escapeHtml(cat.name)}" />` : pixelSticker('catMascot', 3)}
+          </div>
+          <div class="truncate-1">
+            <p class="truncate-1" style="font-weight:700; font-size:15px; margin:0; color:var(--pink-darkest);">${escapeHtml(cat.name)}</p>
+            <p style="font-size:11px; color:var(--ink-soft); margin:0; font-weight:600;">${ageFromBirthdate(cat.birthdate) || 'edad no especificada'}</p>
+          </div>
+        </div>
+        <div style="border-top:2px dashed var(--pink-soft); padding-top:8px; font-size:11px; color:var(--ink-soft); font-weight:600;">
+          ${totalEvents} registro${totalEvents === 1 ? '' : 's'} médico${totalEvents === 1 ? '' : 's'}
+        </div>
+      </div>
+    `;
+  }
+
+  function openCat(catId) {
+    state.activeCatId = catId;
+    state.activeSection = null;
+    state.screen = 'cat';
+    render();
+  }
+
+  function findCat(catId) {
+    return state.cats.find(c => c.id === catId);
+  }
+
+  function renderCatDetail() {
+    const cat = findCat(state.activeCatId);
+    if (!cat) { state.screen = 'list'; return render(); }
+    cat.records = cat.records || { vacuna: [], visita: [], medicacion: [], cirugia: [], estudio: [] };
+
+    const catHeaderHtml = `
+      <div class="pixel-card" style="padding:1.25rem; position:relative; z-index:1;">
+        <div class="pixel-tab">ficha del michi</div>
+        <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:10px;">
+          <div style="display:flex; align-items:center; gap:12px; min-width:0;">
+            <div class="avatar-frame" style="width:54px; height:54px; border-radius:50%; flex-shrink:0;">
+              ${cat.photo ? `<img src="${cat.photo}" alt="${escapeHtml(cat.name)}" />` : pixelSticker('catMascot', 4)}
+            </div>
+            <div class="truncate-1">
+              <h1 class="truncate-1" style="font-size:19px; font-weight:700; margin:0; color:var(--pink-darkest);">${escapeHtml(cat.name)}</h1>
+              <p style="font-size:12px; color:var(--ink-soft); margin:2px 0 0; font-weight:600;">
+                ${ageFromBirthdate(cat.birthdate) || 'edad no especificada'}${cat.sex ? ' · ' + escapeHtml(cat.sex) : ''}
+              </p>
+              ${cat.birthdate ? `<p style="font-size:11px; color:var(--ink-soft); margin:2px 0 0; font-weight:600;">nació ${formatDate(cat.birthdate)}</p>` : ''}
+            </div>
+          </div>
+          <div style="display:flex; gap:6px; flex-shrink:0;">
+            <button id="edit-cat-btn" class="btn-pixel-ghost btn-icon-square" aria-label="Editar datos del michi">
+              ${pixelSticker('pencilIcon', 2.5)}
+            </button>
+            <button id="delete-cat-btn" class="btn-pixel-ghost btn-icon-square" style="color:var(--pink-darkest);" aria-label="Eliminar ficha del michi">
+              ${pixelSticker('trashIcon', 2.5)}
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // ---------- MODE 1: section menu (no active section chosen) ----------
+    if (!state.activeSection) {
+      root.innerHTML = `
+        <div class="pixel-bg" style="padding:1.5rem 1rem 3rem; min-height:480px;">
+          <span class="pixel-decor" style="top:8px; right:5%;">${pixelSticker('bow', 5)}</span>
+          <span class="pixel-decor" style="bottom:6%; left:5%;">${pixelSticker('paw', 4)}</span>
+          <span class="pixel-decor" style="top:42%; right:3%;">${pixelSticker('star', 4)}</span>
+          <span class="pixel-decor" style="bottom:28%; right:6%;">${pixelSticker('sparkle', 5)}</span>
+          <button id="back-btn" class="btn-pixel-ghost" style="font-size:13px; padding:10px 14px; display:inline-flex; align-items:center; gap:6px; margin-bottom:1.25rem; position:relative; z-index:1;">
+            ${pixelSticker('arrowLeft', 3)} volver
+          </button>
+
+          ${catHeaderHtml}
+
+          <p style="font-size:11px; color:var(--ink-soft); font-weight:700; margin:1.5rem 0 8px; position:relative; z-index:1;">SECCIONES</p>
+          <div style="display:flex; flex-direction:column; gap:10px; position:relative; z-index:1;">
+            ${SECTIONS.map(s => {
+              const count = (cat.records[s.id] || []).length;
+              return `
+                <div class="pixel-card section-menu-card section-menu-${s.id}" data-section="${s.id}" style="padding:1rem 1.1rem; cursor:pointer; display:flex; align-items:center; gap:12px; min-height:48px;">
+                  <div class="avatar-frame" style="width:40px; height:40px; border-radius:50%; flex-shrink:0;">
+                    ${pixelSticker(s.icon, 4)}
+                  </div>
+                  <div style="flex:1; min-width:0;">
+                    <p style="font-weight:700; font-size:14px; margin:0; color:var(--ink);">${s.label}</p>
+                    <p style="font-size:11px; color:var(--ink-soft); margin:2px 0 0; font-weight:600;">${count} registro${count === 1 ? '' : 's'}</p>
+                  </div>
+                  ${pixelSticker('chevronRight', 3)}
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+
+        <div id="modal-zone"></div>
+      `;
+
+      document.getElementById('back-btn').addEventListener('click', () => { state.screen = 'list'; render(); });
+      document.getElementById('edit-cat-btn').addEventListener('click', () => openAddCatModal(cat));
+      document.getElementById('delete-cat-btn').addEventListener('click', () => openDeleteCatConfirm(cat));
+      root.querySelectorAll('.section-menu-card').forEach(card => {
+        card.addEventListener('click', () => { state.activeSection = card.dataset.section; render(); });
+      });
+      return;
+    }
+
+    // ---------- MODE 2: section history view ----------
+    const activeSection = SECTIONS.find(s => s.id === state.activeSection) || SECTIONS[0];
+    const records = (cat.records[activeSection.id] || []).slice().sort((a, b) => {
+      const dateField = activeSection.id === 'medicacion' ? 'startDate' : 'date';
+      return (b[dateField] || '').localeCompare(a[dateField] || '');
+    });
+
+    root.innerHTML = `
+      <div class="pixel-bg" style="padding:1.5rem 1rem 3rem; min-height:480px;">
+        <span class="pixel-decor" style="top:8px; right:5%;">${pixelSticker('heart', 4)}</span>
+        <span class="pixel-decor" style="bottom:6%; left:5%;">${pixelSticker('paw', 4)}</span>
+        <span class="pixel-decor" style="top:45%; left:3%;">${pixelSticker('sparkle', 5)}</span>
+        <button id="back-btn" class="btn-pixel-ghost" style="font-size:13px; padding:10px 14px; display:inline-flex; align-items:center; gap:6px; margin-bottom:1.25rem; position:relative; z-index:1;">
+          ${pixelSticker('arrowLeft', 3)} secciones
+        </button>
+
+        <div class="pixel-card" style="padding:1rem 1.1rem; position:relative; z-index:1; display:flex; align-items:center; gap:10px; margin-bottom:1.5rem;">
+          <div class="avatar-frame" style="width:36px; height:36px; border-radius:50%; flex-shrink:0;">
+            ${pixelSticker(activeSection.icon, 4)}
+          </div>
+          <h1 class="truncate-1" style="font-size:16px; font-weight:700; margin:0; color:var(--pink-darkest); flex:1;">${escapeHtml(cat.name)} · ${activeSection.label}</h1>
+        </div>
+
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.9rem; position:relative; z-index:1; gap:10px;">
+          <h2 class="truncate-1" style="font-size:15px; font-weight:700; margin:0; color:var(--pink-darkest);">Historial</h2>
+          <button id="add-record-btn" class="btn-pixel" style="font-size:13px; padding:10px 14px; display:flex; align-items:center; gap:6px; flex-shrink:0;">
+            ${pixelSticker('plusIcon', 3)} agregar
+          </button>
+        </div>
+
+        ${records.length === 0 ? `
+          <div class="pixel-card" style="text-align:center; padding:2rem 1rem; position:relative; z-index:1;">
+            <p style="color:var(--ink-soft); font-size:13px; font-weight:600; margin:0;">Todavía no hay registros de ${activeSection.label.toLowerCase()}.</p>
+          </div>
+        ` : `
+          <div style="display:flex; flex-direction:column; gap:10px; position:relative; z-index:1;">
+            ${records.map(r => renderRecordCard(r, activeSection)).join('')}
+          </div>
+        `}
+      </div>
+
+      <div id="modal-zone"></div>
+    `;
+
+    document.getElementById('back-btn').addEventListener('click', () => { state.activeSection = null; render(); });
+    document.getElementById('add-record-btn').addEventListener('click', () => openRecordModal(cat.id, activeSection.id, null));
+
+    records.forEach(r => {
+      const editBtn = document.getElementById('rec-edit-' + r.id);
+      const delBtn = document.getElementById('rec-del-' + r.id);
+      if (editBtn) editBtn.addEventListener('click', () => openRecordModal(cat.id, activeSection.id, r));
+      if (delBtn) delBtn.addEventListener('click', () => openDeleteRecordConfirm(cat.id, activeSection.id, r.id));
+    });
+  }
+
+  function recordTitle(record, section) {
+    if (section.id === 'vacuna') return record.name || 'Vacuna';
+    if (section.id === 'visita') return record.reason || 'Visita';
+    if (section.id === 'medicacion') return record.name || 'Medicación';
+    if (section.id === 'cirugia') return record.name || 'Intervención';
+    if (section.id === 'estudio') return record.name || 'Estudio';
+    return 'Registro';
+  }
+
+  function renderRecordCard(record, section) {
+    const dateField = section.id === 'medicacion' ? 'startDate' : 'date';
+    return `
+      <div class="pixel-card" style="padding:1.1rem;">
+        <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:8px;">
+          <div style="display:flex; align-items:center; gap:9px; min-width:0;">
+            <div style="flex-shrink:0;">${pixelSticker(section.icon, 3)}</div>
+            <div class="truncate-1">
+              <p class="truncate-1" style="font-weight:700; font-size:14px; margin:0; color:var(--ink);">${escapeHtml(recordTitle(record, section))}</p>
+              <p class="truncate-1" style="font-size:11px; color:var(--ink-soft); margin:2px 0 0; font-weight:600;">${formatDate(record[dateField])}${record.vet ? ' · ' + escapeHtml(record.vet) : ''}</p>
+            </div>
+          </div>
+          <div style="display:flex; gap:4px; flex-shrink:0;">
+            <button id="rec-edit-${record.id}" class="btn-pixel-ghost btn-icon-square" style="box-shadow:none; min-width:38px; min-height:38px;" aria-label="Editar registro">${pixelSticker('pencilIcon', 2)}</button>
+            <button id="rec-del-${record.id}" class="btn-pixel-ghost btn-icon-square" style="box-shadow:none; min-width:38px; min-height:38px; color:var(--pink-darkest);" aria-label="Eliminar registro">${pixelSticker('trashIcon', 2)}</button>
+          </div>
+        </div>
+        <div style="margin-top:9px; padding-top:9px; border-top:2px dashed var(--pink-soft); display:flex; flex-direction:column; gap:4px;">
+          ${section.id === 'vacuna' && record.nextDose ? `<p style="font-size:12px; margin:0; font-weight:600;"><span style="color:var(--ink-soft);">Próxima dosis:</span> ${formatDate(record.nextDose)}</p>` : ''}
+          ${section.id === 'visita' && record.diagnosis ? `<p style="font-size:12px; margin:0; font-weight:600;"><span style="color:var(--ink-soft);">Diagnóstico:</span> ${escapeHtml(record.diagnosis)}</p>` : ''}
+          ${section.id === 'visita' && record.weight ? `<p style="font-size:12px; margin:0; font-weight:600;"><span style="color:var(--ink-soft);">Peso:</span> ${escapeHtml(record.weight)} kg</p>` : ''}
+          ${section.id === 'medicacion' && record.dosage ? `<p style="font-size:12px; margin:0; font-weight:600;"><span style="color:var(--ink-soft);">Dosis:</span> ${escapeHtml(record.dosage)}${record.duration ? ' · ' + escapeHtml(record.duration) : ''}</p>` : ''}
+          ${section.id === 'medicacion' && record.reason ? `<p style="font-size:12px; margin:0; font-weight:600;"><span style="color:var(--ink-soft);">Motivo:</span> ${escapeHtml(record.reason)}</p>` : ''}
+          ${record.notes ? `<p style="font-size:12px; margin:0; color:var(--ink-soft); font-weight:600;">${escapeHtml(record.notes)}</p>` : ''}
+          ${section.id === 'estudio' && record.file ? `
+            <a href="${record.file}" download="${escapeHtml(record.fileName || 'estudio')}" style="display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:700; color:var(--lilac-deep); text-decoration:none; margin-top:2px;">
+              ${pixelSticker('clipIcon', 3)} <span class="truncate-1">${escapeHtml(record.fileName || 'descargar archivo')}</span>
+            </a>
+          ` : ''}
+        </div>
+      </div>
+    `;
+  }
+
+  // ---------- Modals ----------
+
+  function modalShell(innerHtml) {
+    return `
+      <div id="modal-overlay" style="position:absolute; inset:0; background:rgba(92,67,87,0.5); display:flex; align-items:center; justify-content:center; padding:0.75rem; z-index:10; border-radius: var(--border-radius-lg, 12px);">
+        <div id="modal-box" class="pixel-card" style="max-width:440px; width:100%; max-height:88vh; overflow-y:auto; padding:1.25rem;">
+          ${innerHtml}
+        </div>
+      </div>
+    `;
+  }
+
+  function closeModal() {
+    const zone = document.getElementById('modal-zone');
+    if (zone) zone.innerHTML = '';
+    state.pendingPhoto = null;
+    state.pendingFile = null;
+  }
+
+  function openAddCatModal(existingCat) {
+    const isEdit = !!existingCat;
+    state.pendingPhoto = isEdit ? (existingCat.photo || null) : null;
+    const zone = document.getElementById('modal-zone');
+    zone.innerHTML = modalShell(`
+      <h2 style="font-size:16px; font-weight:700; margin:0 0 1.1rem; color:var(--pink-darkest);">${isEdit ? 'Editar datos de ' + escapeHtml(existingCat.name) : 'Nuevo michi ✿'}</h2>
+      <form id="cat-form" style="display:flex; flex-direction:column; gap:12px;">
+        <div style="display:flex; flex-direction:column; align-items:center; gap:8px;">
+          <div class="avatar-frame" id="photo-preview" style="width:84px; height:84px; border-radius:50%;">
+            ${state.pendingPhoto ? `<img src="${state.pendingPhoto}" alt="" />` : pixelSticker('cameraIcon', 4)}
+          </div>
+          <label for="cf-photo-input" class="btn-pixel-ghost" style="font-size:11px; padding:6px 10px; display:inline-flex; align-items:center; gap:5px;">
+            ${pixelSticker('uploadIcon', 3)} ${state.pendingPhoto ? 'cambiar foto' : 'subir foto'}
+          </label>
+          <input id="cf-photo-input" type="file" accept="image/*" style="display:none;" />
+        </div>
+        <div>
+          <label class="field-label">Nombre *</label>
+          <input id="cf-name" class="field-input" type="text" value="${isEdit ? escapeHtml(existingCat.name) : ''}" required />
+        </div>
+        <div style="display:flex; gap:10px;">
+          <div style="flex:1;">
+            <label class="field-label">Fecha de nacimiento</label>
+            <input id="cf-birthdate" class="field-input" type="date" value="${isEdit ? (existingCat.birthdate || '') : ''}" />
+          </div>
+          <div style="flex:1;">
+            <label class="field-label">Sexo</label>
+            <select id="cf-sex" class="field-input">
+              <option value="" ${!isEdit || !existingCat.sex ? 'selected' : ''}>—</option>
+              <option value="macho" ${isEdit && existingCat.sex === 'macho' ? 'selected' : ''}>macho</option>
+              <option value="hembra" ${isEdit && existingCat.sex === 'hembra' ? 'selected' : ''}>hembra</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex; gap:8px; margin-top:8px; justify-content:flex-end;">
+          <button type="button" id="cat-cancel-btn" class="btn-pixel-ghost">cancelar</button>
+          <button type="submit" class="btn-pixel">${isEdit ? 'guardar cambios' : 'crear ficha ✿'}</button>
+        </div>
+      </form>
+    `);
+    document.getElementById('cat-cancel-btn').addEventListener('click', closeModal);
+    document.getElementById('cf-photo-input').addEventListener('change', async e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      try {
+        const dataUrl = await processImageFile(file);
+        state.pendingPhoto = dataUrl;
+        document.getElementById('photo-preview').innerHTML = `<img src="${dataUrl}" alt="" />`;
+      } catch (err) {
+        alert('No se pudo procesar la imagen.');
+      }
+    });
+    document.getElementById('cat-form').addEventListener('submit', async e => {
+      e.preventDefault();
+      const name = document.getElementById('cf-name').value.trim();
+      if (!name) return;
+      const data = {
+        name,
+        birthdate: document.getElementById('cf-birthdate').value,
+        sex: document.getElementById('cf-sex').value,
+        photo: state.pendingPhoto
+      };
+      if (isEdit) {
+        Object.assign(existingCat, data);
+      } else {
+        state.cats.push({ id: uid(), ...data, records: { vacuna: [], visita: [], medicacion: [], cirugia: [], estudio: [] } });
+      }
+      await saveUserCats();
+      closeModal();
+      render();
+    });
+  }
+
+  function openDeleteCatConfirm(cat) {
+    const zone = document.getElementById('modal-zone');
+    zone.innerHTML = modalShell(`
+      <h2 style="font-size:15px; font-weight:700; margin:0 0 8px; color:var(--pink-darkest);">¿Eliminar la ficha de ${escapeHtml(cat.name)}?</h2>
+      <p style="font-size:13px; color:var(--ink-soft); margin:0 0 1.25rem; font-weight:600;">Se va a borrar toda su historia médica. Esta acción no se puede deshacer.</p>
+      <div style="display:flex; gap:8px; justify-content:flex-end;">
+        <button id="cancel-del-cat" class="btn-pixel-ghost">cancelar</button>
+        <button id="confirm-del-cat" class="btn-pixel" style="background:var(--pink-darkest);">eliminar</button>
+      </div>
+    `);
+    document.getElementById('cancel-del-cat').addEventListener('click', closeModal);
+    document.getElementById('confirm-del-cat').addEventListener('click', async () => {
+      state.cats = state.cats.filter(c => c.id !== cat.id);
+      await saveUserCats();
+      closeModal();
+      state.screen = 'list';
+      render();
+    });
+  }
+
+  function openDeleteRecordConfirm(catId, sectionId, recordId) {
+    const zone = document.getElementById('modal-zone');
+    zone.innerHTML = modalShell(`
+      <h2 style="font-size:15px; font-weight:700; margin:0 0 8px; color:var(--pink-darkest);">¿Eliminar este registro?</h2>
+      <p style="font-size:13px; color:var(--ink-soft); margin:0 0 1.25rem; font-weight:600;">Esta acción no se puede deshacer.</p>
+      <div style="display:flex; gap:8px; justify-content:flex-end;">
+        <button id="cancel-del-rec" class="btn-pixel-ghost">cancelar</button>
+        <button id="confirm-del-rec" class="btn-pixel" style="background:var(--pink-darkest);">eliminar</button>
+      </div>
+    `);
+    document.getElementById('cancel-del-rec').addEventListener('click', closeModal);
+    document.getElementById('confirm-del-rec').addEventListener('click', async () => {
+      const cat = findCat(catId);
+      cat.records[sectionId] = (cat.records[sectionId] || []).filter(r => r.id !== recordId);
+      await saveUserCats();
+      closeModal();
+      render();
+    });
+  }
+
+  function openRecordModal(catId, sectionId, existingRecord) {
+    const isEdit = !!existingRecord;
+    const section = SECTIONS.find(s => s.id === sectionId);
+    const fields = SECTION_FIELDS[sectionId];
+    const record = existingRecord || {};
+    state.pendingFile = isEdit ? { data: record.file || null, name: record.fileName || null } : { data: null, name: null };
+    const zone = document.getElementById('modal-zone');
+    zone.innerHTML = modalShell(`
+      <h2 style="font-size:16px; font-weight:700; margin:0 0 1.1rem; color:var(--pink-darkest);">${isEdit ? 'Editar' : 'Nuevo'} registro · ${section.label.toLowerCase()}</h2>
+      <form id="record-form" style="display:flex; flex-direction:column; gap:12px;">
+        ${fields.map(f => `
+          <div>
+            <label class="field-label">${f.label}</label>
+            ${f.type === 'textarea'
+              ? `<textarea id="rf-${f.id}" class="field-input" rows="2" placeholder="${f.placeholder || ''}">${escapeHtml(record[f.id] || '')}</textarea>`
+              : `<input id="rf-${f.id}" class="field-input" type="${f.type}" value="${escapeHtml(record[f.id] || '')}" placeholder="${f.placeholder || ''}" ${f.required ? 'required' : ''} />`
+            }
+          </div>
+        `).join('')}
+        ${section.hasFile ? `
+          <div>
+            <label class="field-label">Archivo del estudio</label>
+            <div id="file-preview" style="display:flex; align-items:center; gap:8px; margin-bottom:6px; ${state.pendingFile.name ? '' : 'display:none;'}">
+              ${pixelSticker('fileIcon', 3)}
+              <span id="file-preview-name" style="font-size:12px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(state.pendingFile.name || '')}</span>
+              <button type="button" id="file-remove-btn" class="btn-pixel-ghost" style="padding:3px 7px; font-size:10px; box-shadow:none;">quitar</button>
+            </div>
+            <label for="rf-file-input" class="btn-pixel-ghost" style="font-size:12px; padding:8px 12px; display:inline-flex; align-items:center; gap:6px;">
+              ${pixelSticker('uploadIcon', 3)} ${state.pendingFile.name ? 'cambiar archivo' : 'subir archivo'}
+            </label>
+            <input id="rf-file-input" type="file" style="display:none;" />
+            <p style="font-size:10px; color:var(--ink-soft); margin:6px 0 0; font-weight:600;">Hasta 4 MB aprox. Si es más pesado, puede no guardarse.</p>
+          </div>
+        ` : ''}
+        <div style="display:flex; gap:8px; margin-top:8px; justify-content:flex-end;">
+          <button type="button" id="record-cancel-btn" class="btn-pixel-ghost">cancelar</button>
+          <button type="submit" class="btn-pixel">${isEdit ? 'guardar cambios' : 'agregar ✿'}</button>
+        </div>
+      </form>
+    `);
+    document.getElementById('record-cancel-btn').addEventListener('click', closeModal);
+    if (section.hasFile) {
+      document.getElementById('rf-file-input').addEventListener('change', e => {
+        const file = e.target.files[0];
+        if (!file) return;
+        if (file.size > 4 * 1024 * 1024) {
+          alert('Ese archivo pesa más de 4 MB y probablemente no se pueda guardar. Probá con uno más liviano o comprimilo antes de subirlo.');
+          e.target.value = '';
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = ev => {
+          state.pendingFile = { data: ev.target.result, name: file.name };
+          document.getElementById('file-preview').style.display = 'flex';
+          document.getElementById('file-preview-name').textContent = file.name;
+          document.querySelector('label[for="rf-file-input"]').innerHTML = pixelSticker('uploadIcon', 3) + ' cambiar archivo';
+        };
+        reader.onerror = () => alert('No se pudo leer el archivo.');
+        reader.readAsDataURL(file);
+      });
+      const removeBtn = document.getElementById('file-remove-btn');
+      if (removeBtn) {
+        removeBtn.addEventListener('click', () => {
+          state.pendingFile = { data: null, name: null };
+          document.getElementById('file-preview').style.display = 'none';
+          document.getElementById('rf-file-input').value = '';
+        });
+      }
+    }
+    document.getElementById('record-form').addEventListener('submit', async e => {
+      e.preventDefault();
+      const data = {};
+      let valid = true;
+      fields.forEach(f => {
+        const el = document.getElementById('rf-' + f.id);
+        const val = el.value.trim();
+        if (f.required && !val) valid = false;
+        data[f.id] = val;
+      });
+      if (!valid) return;
+      if (section.hasFile) {
+        data.file = state.pendingFile.data;
+        data.fileName = state.pendingFile.name;
+      }
+      const cat = findCat(catId);
+      cat.records = cat.records || { vacuna: [], visita: [], medicacion: [], cirugia: [], estudio: [] };
+      cat.records[sectionId] = cat.records[sectionId] || [];
+      if (isEdit) {
+        Object.assign(existingRecord, data);
+      } else {
+        cat.records[sectionId].push({ id: uid(), ...data });
+      }
+      await saveUserCats();
+      closeModal();
+      render();
+    });
+  }
+
+  // ---------- Init ----------
+  initLogin();
+})();
+</script>
+</body>
+</html>
