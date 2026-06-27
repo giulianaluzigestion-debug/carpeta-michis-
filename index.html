@@ -554,9 +554,10 @@ textarea.field-input { min-height: 72px; }
   };
 
   const PET_ACCESSORIES = {
-    chaleco: { id: 'chaleco', label: 'Chaleco', cost: 1, color: '#F0699A' },
+    alitas: { id: 'alitas', label: 'Alitas de hada', cost: 1, color: '#C9AEEA' },
     moño: { id: 'moño', label: 'Moño', cost: 1, color: '#9B7BC9' },
-    gorrito: { id: 'gorrito', label: 'Gorrito', cost: 1, color: '#4FA87E' }
+    gorrito: { id: 'gorrito', label: 'Gorrito', cost: 1, color: '#4FA87E' },
+    corona: { id: 'corona', label: 'Coronita', cost: 1, color: '#FFEFB8' }
   };
 
   function petSpriteSvg(breedId, accessoryIds, frame, scale) {
@@ -564,25 +565,39 @@ textarea.field-input { min-height: 72px; }
     const sc = scale || 1;
     const lo = frame === 2 ? 6 : 0; // leg offset alternates between the two walk frames
     const accSet = accessoryIds || [];
-    let accessoryShapes = '';
-    if (accSet.includes('chaleco')) {
-      accessoryShapes += `<path d="M58 72 Q80 66 102 72 L100 96 Q80 102 60 96 Z" fill="${PET_ACCESSORIES.chaleco.color}"/>`;
+
+    let wingsLayer = '';
+    if (accSet.includes('alitas')) {
+      wingsLayer = `<g opacity="0.92">
+        <path d="M78 70 Q60 35 85 15 Q108 10 110 35 Q112 55 90 62 Z" fill="#E8D4F5" stroke="#C9AEEA" stroke-width="1.5"/>
+        <path d="M82 72 Q70 50 88 35 Q104 28 106 45 Q106 60 92 66 Z" fill="#F6EAF8" stroke="#DEBEDC" stroke-width="1.2"/>
+        <path d="M70 70 Q88 35 63 15 Q40 10 38 35 Q36 55 58 62 Z" fill="#DCC3EF" stroke="#C9AEEA" stroke-width="1.5" opacity="0.85"/>
+        <path d="M68 72 Q80 50 62 35 Q46 28 44 45 Q44 60 58 66 Z" fill="#EEDCF2" stroke="#DEBEDC" stroke-width="1.2" opacity="0.85"/>
+        <circle cx="95" cy="25" r="1.8" fill="#FFFFFF" opacity="0.9"/>
+        <circle cx="55" cy="28" r="1.4" fill="#FFFFFF" opacity="0.8"/>
+      </g>`;
     }
+
+    let frontLayer = '';
     if (accSet.includes('moño')) {
-      accessoryShapes += `<path d="M14 30 L24 24 L24 34 Z M34 30 L24 24 L24 34 Z" fill="${PET_ACCESSORIES.moño.color}"/><circle cx="24" cy="30" r="2.6" fill="${PET_ACCESSORIES.moño.color}"/>`;
+      frontLayer += `<path d="M14 30 L24 24 L24 34 Z M34 30 L24 24 L24 34 Z" fill="${PET_ACCESSORIES.moño.color}"/><circle cx="24" cy="30" r="2.6" fill="${PET_ACCESSORIES.moño.color}"/>`;
     }
     if (accSet.includes('gorrito')) {
-      accessoryShapes += `<path d="M26 24 Q42 6 58 24 Q42 18 26 24 Z" fill="${PET_ACCESSORIES.gorrito.color}"/><circle cx="42" cy="8" r="3" fill="${PET_ACCESSORIES.gorrito.color}"/>`;
+      frontLayer += `<path d="M26 24 Q42 6 58 24 Q42 18 26 24 Z" fill="${PET_ACCESSORIES.gorrito.color}"/><circle cx="42" cy="8" r="3" fill="${PET_ACCESSORIES.gorrito.color}"/>`;
     }
+    if (accSet.includes('corona')) {
+      frontLayer += `<path d="M28 22 L32 10 L37 18 L42 8 L47 18 L52 10 L56 22 Z" fill="#FFEFB8" stroke="#C99A2E" stroke-width="1"/><circle cx="32" cy="11" r="1.8" fill="#F0699A"/><circle cx="42" cy="9" r="1.8" fill="#9B7BC9"/><circle cx="52" cy="11" r="1.8" fill="#4FA87E"/>`;
+    }
+
     return `
     <svg width="${170 * sc}" height="${125 * sc}" viewBox="0 0 170 125" xmlns="http://www.w3.org/2000/svg">
+      ${wingsLayer}
       <path d="M118 88 Q155 92 152 60 Q150 40 132 42 Q142 52 136 66 Q130 80 112 80 Z" fill="${c.body}"/>
       <ellipse cx="${100 + lo}" cy="108" rx="10" ry="13" fill="${c.body}"/>
       <ellipse cx="${118 - lo}" cy="108" rx="10" ry="13" fill="${c.body}"/>
       <ellipse cx="80" cy="80" rx="50" ry="30" fill="${c.body}"/>
       <ellipse cx="${44 + lo}" cy="108" rx="10" ry="13" fill="${c.body}"/>
       <ellipse cx="${62 - lo}" cy="108" rx="10" ry="13" fill="${c.body}"/>
-      ${accessoryShapes.includes('chaleco') ? '' : ''}
       <circle cx="42" cy="55" r="32" fill="${c.body}"/>
       <path d="M18 38 Q12 14 32 26 Z" fill="${c.body}"/>
       <path d="M56 32 Q66 8 74 28 Z" fill="${c.body}"/>
@@ -598,7 +613,7 @@ textarea.field-input { min-height: 72px; }
       </g>
       <ellipse cx="22" cy="61" rx="4.2" ry="2.8" fill="${c.blush}" opacity="0.55"/>
       <ellipse cx="59" cy="61" rx="4.2" ry="2.8" fill="${c.blush}" opacity="0.55"/>
-      ${accessoryShapes}
+      ${frontLayer}
     </svg>`;
   }
 
