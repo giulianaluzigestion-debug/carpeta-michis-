@@ -266,7 +266,11 @@ textarea.field-input { min-height: 72px; }
     knownUsers: [],
     loading: true,
     pendingPhoto: null,
-    pendingFile: null
+    pendingFile: null,
+    pet: { unlockedBreeds: ['rosa', 'siamesa', 'negra'], unlockedAccessories: ['chaleco', 'moño', 'gorrito'], activeBreed: 'rosa', activeAccessories: [] },
+    petWalkFrame: 1,
+    petDirection: 1,
+    petPosition: 10
   };
 
   function escapeHtml(str) {
@@ -542,7 +546,63 @@ textarea.field-input { min-height: 72px; }
     }
   };
 
-  function pixelSticker(type, size) {
+// ---------- Walking pet mascot: cute rounded-shape cat illustration (no pixel art), 2 walk frames, 3 breeds, 3 accessories ----------
+  const PET_BREEDS = {
+    rosa: { id: 'rosa', label: 'Rosa', cost: 0, colors: { body: '#FFC2DC', earInner: '#FFE8F1', eye: '#5C4357', nose: '#F0699A', blush: '#FF8FB8', whisker: '#B23467' } },
+    siamesa: { id: 'siamesa', label: 'Siamesa', cost: 2, colors: { body: '#F2E9DC', earInner: '#E8D4B8', eye: '#6FA8C9', nose: '#8B6A4F', blush: '#E3B98F', whisker: '#8B6A4F' } },
+    negra: { id: 'negra', label: 'Negra y gris', cost: 2, colors: { body: '#9B97A6', earInner: '#D8D4DE', eye: '#FFEFB8', nose: '#5C4357', blush: '#7D7889', whisker: '#5C4357' } }
+  };
+
+  const PET_ACCESSORIES = {
+    chaleco: { id: 'chaleco', label: 'Chaleco', cost: 1, color: '#F0699A' },
+    moño: { id: 'moño', label: 'Moño', cost: 1, color: '#9B7BC9' },
+    gorrito: { id: 'gorrito', label: 'Gorrito', cost: 1, color: '#4FA87E' }
+  };
+
+  function petSpriteSvg(breedId, accessoryIds, frame, scale) {
+    const c = (PET_BREEDS[breedId] || PET_BREEDS.rosa).colors;
+    const sc = scale || 1;
+    const lo = frame === 2 ? 6 : 0; // leg offset alternates between the two walk frames
+    const accSet = accessoryIds || [];
+    let accessoryShapes = '';
+    if (accSet.includes('chaleco')) {
+      accessoryShapes += `<path d="M58 72 Q80 66 102 72 L100 96 Q80 102 60 96 Z" fill="${PET_ACCESSORIES.chaleco.color}"/>`;
+    }
+    if (accSet.includes('moño')) {
+      accessoryShapes += `<path d="M14 30 L24 24 L24 34 Z M34 30 L24 24 L24 34 Z" fill="${PET_ACCESSORIES.moño.color}"/><circle cx="24" cy="30" r="2.6" fill="${PET_ACCESSORIES.moño.color}"/>`;
+    }
+    if (accSet.includes('gorrito')) {
+      accessoryShapes += `<path d="M26 24 Q42 6 58 24 Q42 18 26 24 Z" fill="${PET_ACCESSORIES.gorrito.color}"/><circle cx="42" cy="8" r="3" fill="${PET_ACCESSORIES.gorrito.color}"/>`;
+    }
+    return `
+    <svg width="${170 * sc}" height="${125 * sc}" viewBox="0 0 170 125" xmlns="http://www.w3.org/2000/svg">
+      <path d="M118 88 Q155 92 152 60 Q150 40 132 42 Q142 52 136 66 Q130 80 112 80 Z" fill="${c.body}"/>
+      <ellipse cx="${100 + lo}" cy="108" rx="10" ry="13" fill="${c.body}"/>
+      <ellipse cx="${118 - lo}" cy="108" rx="10" ry="13" fill="${c.body}"/>
+      <ellipse cx="80" cy="80" rx="50" ry="30" fill="${c.body}"/>
+      <ellipse cx="${44 + lo}" cy="108" rx="10" ry="13" fill="${c.body}"/>
+      <ellipse cx="${62 - lo}" cy="108" rx="10" ry="13" fill="${c.body}"/>
+      ${accessoryShapes.includes('chaleco') ? '' : ''}
+      <circle cx="42" cy="55" r="32" fill="${c.body}"/>
+      <path d="M18 38 Q12 14 32 26 Z" fill="${c.body}"/>
+      <path d="M56 32 Q66 8 74 28 Z" fill="${c.body}"/>
+      <path d="M21 34 Q18 19 29 27 Z" fill="${c.earInner}"/>
+      <path d="M59 29 Q65 14 70 26 Z" fill="${c.earInner}"/>
+      <circle cx="31" cy="53" r="3.4" fill="${c.eye}"/>
+      <circle cx="50" cy="53" r="3.4" fill="${c.eye}"/>
+      <ellipse cx="40.5" cy="62" rx="2.8" ry="2.1" fill="${c.nose}"/>
+      <path d="M37.5 64 Q40.5 67 43.5 64" stroke="${c.nose}" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+      <g stroke="${c.whisker}" stroke-width="1.1" fill="none" opacity="0.45" stroke-linecap="round">
+        <path d="M12 58 Q3 56 -4 58"/>
+        <path d="M12 63 Q3 64 -4 66"/>
+      </g>
+      <ellipse cx="22" cy="61" rx="4.2" ry="2.8" fill="${c.blush}" opacity="0.55"/>
+      <ellipse cx="59" cy="61" rx="4.2" ry="2.8" fill="${c.blush}" opacity="0.55"/>
+      ${accessoryShapes}
+    </svg>`;
+  }
+
+    function pixelSticker(type, size) {
     const def = STICKER_DEFS[type];
     if (!def) return '';
     const s = size || 6;
@@ -627,18 +687,23 @@ textarea.field-input { min-height: 72px; }
         .eq('username', userKey(username))
         .maybeSingle();
       if (error) throw error;
-      return (data && data.data) ? data.data : [];
+      const payload = (data && data.data) ? data.data : null;
+      if (!payload) return { cats: [], pet: null };
+      // Backward compatible: existing rows store a bare array of cats (no pet data yet).
+      if (Array.isArray(payload)) return { cats: payload, pet: null };
+      return { cats: payload.cats || [], pet: payload.pet || null };
     } catch (e) {
       console.error('Error cargando', e);
-      return [];
+      return { cats: [], pet: null };
     }
   }
 
   async function saveUserCats() {
     try {
+      const payload = { cats: state.cats, pet: state.pet };
       const { error } = await supabaseClient
         .from('cats_data')
-        .upsert({ username: userKey(state.currentUser), data: state.cats, updated_at: new Date().toISOString() }, { onConflict: 'username' });
+        .upsert({ username: userKey(state.currentUser), data: payload, updated_at: new Date().toISOString() }, { onConflict: 'username' });
       if (error) throw error;
     } catch (e) {
       console.error('Error guardando', e);
@@ -683,15 +748,43 @@ textarea.field-input { min-height: 72px; }
     state.loading = true;
     render();
     await addKnownUser(trimmed);
-    state.cats = await loadUserCats(trimmed);
+    const loaded = await loadUserCats(trimmed);
+    state.cats = loaded.cats;
+    state.pet = loaded.pet || { unlockedBreeds: ['rosa', 'siamesa', 'negra'], unlockedAccessories: ['chaleco', 'moño', 'gorrito'], activeBreed: 'rosa', activeAccessories: [] };
     state.loading = false;
     state.screen = 'list';
     render();
+    startPetWalkLoop();
   }
 
   function handleLogout() {
-    state = { screen: 'login', currentUser: null, cats: [], activeCatId: null, activeSection: null, knownUsers: [], loading: true, pendingPhoto: null };
+    stopPetWalkLoop();
+    state = { screen: 'login', currentUser: null, cats: [], activeCatId: null, activeSection: null, knownUsers: [], loading: true, pendingPhoto: null, pet: { unlockedBreeds: ['rosa', 'siamesa', 'negra'], unlockedAccessories: ['chaleco', 'moño', 'gorrito'], activeBreed: 'rosa', activeAccessories: [] }, petWalkFrame: 1, petDirection: 1, petPosition: 10 };
     initLogin();
+  }
+
+  // ---------- Pet walking animation: moves the sprite back and forth inside its strip ----------
+  let petWalkInterval = null;
+  function startPetWalkLoop() {
+    stopPetWalkLoop();
+    petWalkInterval = setInterval(() => {
+      const sprite = document.getElementById('pet-walk-sprite');
+      const strip = document.getElementById('pet-walk-strip');
+      if (!sprite || !strip) return;
+      const stripWidth = strip.clientWidth;
+      const spriteWidth = sprite.offsetWidth || 56;
+      const maxPos = Math.max(10, stripWidth - spriteWidth - 10);
+      state.petPosition += state.petDirection * 14;
+      if (state.petPosition >= maxPos) { state.petPosition = maxPos; state.petDirection = -1; }
+      if (state.petPosition <= 10) { state.petPosition = 10; state.petDirection = 1; }
+      state.petWalkFrame = state.petWalkFrame === 1 ? 2 : 1;
+      sprite.style.left = state.petPosition + 'px';
+      sprite.style.transform = state.petDirection === -1 ? 'scaleX(-1)' : 'scaleX(1)';
+      sprite.innerHTML = petSpriteSvg(state.pet.activeBreed, state.pet.activeAccessories, state.petWalkFrame, 0.32);
+    }, 650);
+  }
+  function stopPetWalkLoop() {
+    if (petWalkInterval) { clearInterval(petWalkInterval); petWalkInterval = null; }
   }
 
   async function initLogin() {
@@ -733,6 +826,7 @@ textarea.field-input { min-height: 72px; }
     if (state.screen === 'login') return renderLogin();
     if (state.screen === 'list') return renderCatList();
     if (state.screen === 'cat') return renderCatDetail();
+    if (state.screen === 'pet') return renderPetScreen();
   }
 
   function renderLogin() {
@@ -811,16 +905,99 @@ textarea.field-input { min-height: 72px; }
         <button id="add-cat-btn" class="btn-pixel" style="margin-top:1.75rem; width:100%; display:flex; align-items:center; justify-content:center; gap:8px; position:relative; z-index:1;">
           ${lineIcon('plusIcon', 17, 'white')} agregar un michi
         </button>
+
+        <div id="pet-walk-strip" class="pixel-card" style="margin-top:1.75rem; padding:0; height:74px; position:relative; overflow:hidden; cursor:pointer; z-index:1;">
+          <div id="pet-walk-sprite" style="position:absolute; bottom:6px; left:10px; transition:left 0.6s linear;">
+            ${petSpriteSvg(state.pet.activeBreed, state.pet.activeAccessories, 1, 0.32)}
+          </div>
+          <span style="position:absolute; top:6px; right:10px; font-size:10px; color:var(--ink-soft); font-weight:700;">tocá para ver tu mascota →</span>
+        </div>
       </div>
 
       <div id="modal-zone"></div>
     `;
     document.getElementById('logout-btn').addEventListener('click', handleLogout);
     document.getElementById('add-cat-btn').addEventListener('click', () => openAddCatModal());
+    document.getElementById('pet-walk-strip').addEventListener('click', () => { state.screen = 'pet'; render(); });
     cats.forEach(cat => {
       const el = document.getElementById('cat-card-' + cat.id);
       if (el) el.addEventListener('click', () => openCat(cat.id));
     });
+  }
+
+  function renderPetScreen() {
+    const pet = state.pet;
+    root.innerHTML = `
+      <div class="pixel-bg" style="padding:1.5rem 1rem 3rem; min-height:480px;">
+        <span class="pixel-decor" style="top:8px; right:5%;">${pixelSticker('bow', 5)}</span>
+        <span class="pixel-decor" style="bottom:6%; left:5%;">${pixelSticker('paw', 4)}</span>
+        <button id="pet-back-btn" class="btn-pixel-ghost" style="font-size:13px; padding:10px 14px; display:inline-flex; align-items:center; gap:6px; margin-bottom:1.25rem; position:relative; z-index:1;">
+          ${lineIcon('arrowLeft', 16, 'var(--ink)')} volver
+        </button>
+
+        <div class="pixel-card" style="padding:1.5rem; position:relative; z-index:1; text-align:center;">
+          <div class="pixel-tab">mi mascota</div>
+          <div style="display:flex; justify-content:center; margin: 14px 0 20px;">
+            ${petSpriteSvg(pet.activeBreed, pet.activeAccessories, 1, 1.3)}
+          </div>
+          <p style="font-size:13px; color:var(--ink-soft); font-weight:600; margin:0;">Te acompaña mientras navegás la carpeta ✿</p>
+        </div>
+
+        <p style="font-size:11px; color:var(--ink-soft); font-weight:700; margin:1.75rem 0 8px; position:relative; z-index:1;">RAZAS Y COLORES</p>
+        <div style="display:flex; flex-direction:column; gap:10px; position:relative; z-index:1;">
+          ${Object.values(PET_BREEDS).map(breed => renderPetCatalogCard(breed, 'breed', pet.activeBreed === breed.id)).join('')}
+        </div>
+
+        <p style="font-size:11px; color:var(--ink-soft); font-weight:700; margin:1.75rem 0 8px; position:relative; z-index:1;">ACCESORIOS</p>
+        <div style="display:flex; flex-direction:column; gap:10px; position:relative; z-index:1;">
+          ${Object.values(PET_ACCESSORIES).map(acc => renderPetCatalogCard(acc, 'accessory', pet.activeAccessories.includes(acc.id))).join('')}
+        </div>
+      </div>
+
+      <div id="modal-zone"></div>
+    `;
+
+    document.getElementById('pet-back-btn').addEventListener('click', () => { state.screen = 'list'; render(); startPetWalkLoop(); });
+
+    Object.values(PET_BREEDS).forEach(breed => {
+      const selectBtn = document.getElementById('select-breed-' + breed.id);
+      if (selectBtn) selectBtn.addEventListener('click', () => selectPetBreed(breed.id));
+    });
+    Object.values(PET_ACCESSORIES).forEach(acc => {
+      const toggleBtn = document.getElementById('toggle-accessory-' + acc.id);
+      if (toggleBtn) toggleBtn.addEventListener('click', () => togglePetAccessory(acc.id));
+    });
+  }
+
+  function renderPetCatalogCard(item, kind, active) {
+    const previewBreed = kind === 'breed' ? item.id : (state.pet.activeBreed);
+    const previewAccessories = kind === 'breed' ? [] : [item.id];
+    return `
+      <div class="pixel-card" style="padding:0.9rem 1rem; display:flex; align-items:center; gap:12px; ${active ? 'border-color:var(--pink-deep);' : ''}">
+        <div class="avatar-frame" style="width:46px; height:46px; border-radius:50%; flex-shrink:0; overflow:hidden; position:relative;">
+          <div style="position:absolute; left:-6px; top:-2px;">${petSpriteSvg(previewBreed, previewAccessories, 1, 0.34)}</div>
+        </div>
+        <div style="flex:1; min-width:0;">
+          <p style="font-weight:700; font-size:14px; margin:0; color:var(--ink);">${escapeHtml(item.label)}</p>
+          <p style="font-size:11px; color:var(--ink-soft); margin:2px 0 0; font-weight:600;">${active ? 'seleccionado' : 'disponible'}</p>
+        </div>
+        <button id="${kind === 'breed' ? 'select-breed-' + item.id : 'toggle-accessory-' + item.id}" class="${active ? 'btn-pixel' : 'btn-pixel-ghost'}" style="font-size:12px; padding:8px 12px; flex-shrink:0;">${active ? (kind === 'breed' ? 'puesto' : 'quitar') : 'usar'}</button>
+      </div>
+    `;
+  }
+
+  function selectPetBreed(breedId) {
+    state.pet.activeBreed = breedId;
+    saveUserCats();
+    render();
+  }
+
+  function togglePetAccessory(accId) {
+    const idx = state.pet.activeAccessories.indexOf(accId);
+    if (idx === -1) state.pet.activeAccessories.push(accId);
+    else state.pet.activeAccessories.splice(idx, 1);
+    saveUserCats();
+    render();
   }
 
   function renderCatCard(cat) {
